@@ -4,7 +4,7 @@ import random
 from sklearn import metrics
 import numpy
 
-def getTrainingAndCvSets(fileName, splitLevel=100):
+def getTrainingAndCvSets(fileName, splitLevel=100, randomize=True):
     
     # Read the CSV file which contains training examples
     print "Reading CSV file..."
@@ -18,7 +18,10 @@ def getTrainingAndCvSets(fileName, splitLevel=100):
     print "CV Set size:",cvSet_size
     
     # Split the dataframe into the training set and the cv set
-    rowsIndexes = random.sample(df.index, trainingSet_size)
+    if randomize == True:
+        rowsIndexes = random.sample(df.index, trainingSet_size)
+    else:
+        rowsIndexes = range(0, trainingSet_size)
     trainingSet_df = df.ix[rowsIndexes]
     cvSet_df = df.drop(rowsIndexes)
     

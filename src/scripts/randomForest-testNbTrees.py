@@ -15,7 +15,7 @@ if __name__ == '__main__':
     nbTreesRange = range(1, 100, 1)
     
     # get the Training and CV sets
-    (trainingSet_df, cvSet_df) = getTrainingAndCvSets(trainingSet_fileName, splitLevel=70)
+    (trainingSet_df, cvSet_df) = getTrainingAndCvSets(trainingSet_fileName, splitLevel=70, randomize=False)
     trainingSet_features = trainingSet_df.drop('label',1)
     trainingSet_label = trainingSet_df['label']
     cvSet_features = cvSet_df.drop('label',1)
