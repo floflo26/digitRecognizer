@@ -8,19 +8,15 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn import metrics
 import numpy
 
-trainingSet_Ratio = 70 #ratio in % of the training set to use for training
-
-if __name__ == '__main__':
+def getTrainingAndCvSets(fileName, splitLevel=100):
     
-    print "---BEGIN---"
-    
-    # Read the CSV files which contains training examples
+    # Read the CSV file which contains training examples
     print "Reading CSV file..."
-    df = read_csv('data/train500.csv')
+    df = read_csv(fileName)
     print "CSV file size: ",df.shape[0],"x",df.shape[1]
     
     # Compute the size of trainingSet and cvSet
-    trainingSet_size = int(round(df.shape[0] * trainingSet_Ratio /100))
+    trainingSet_size = int(round(df.shape[0] * splitLevel /100))
     cvSet_size = df.shape[0] - trainingSet_size
     print "Training Set size:",trainingSet_size
     print "CV Set size:",cvSet_size
@@ -30,29 +26,19 @@ if __name__ == '__main__':
     trainingSet_df = df.ix[rowsIndexes]
     cvSet_df = df.drop(rowsIndexes)
     
-    # Train the Random Forest
-    rf = RandomForestClassifier(n_estimators=100, n_jobs=2, verbose=2)
-    trainingSet_features = trainingSet_df.drop('label',1)
-    trainingSet_label = trainingSet_df['label']
-    print "Training Random Forest..."
-    rf.fit(numpy.asarray(trainingSet_features), numpy.asarray(trainingSet_label))
-    print "End of Training"
+    return (trainingSet_df, cvSet_df)
+
+def computeScore(classifier, Xset, Yset, setName=""):
+    predVal = classifier.predict(numpy.asarray(Xset))
+    score = metrics.precision_score(Yset, predVal)
+    print "Score",setName,":",score
     
-    # Predict on the training set
-    trainingSet_predVal = rf.predict(numpy.asarray(trainingSet_features))
-    trainingSet_score = metrics.precision_score(trainingSet_label, trainingSet_predVal)
-    print "Score Training Set:",trainingSet_score
+    return score
     
-    # Predict on the CV set
-    cvSet_features = cvSet_df.drop('label',1)
-    cvSet_label = cvSet_df['label']
-    cvSet_predVal = rf.predict(numpy.asarray(cvSet_features))
-    cvSet_score = metrics.precision_score(cvSet_label, cvSet_predVal)
-    print "Score CV Set:",cvSet_score
-    
+def runOnTestSet(classifier, fileNameTestSet, fileNameOutput):
     # Read the test set
     print "Reading Test set..."
-    testSet_df = read_csv('data/test.csv')
+    testSet_df = read_csv(fileNameTestSet)
     print "CSV file size: ",testSet_df.shape[0],"x",testSet_df.shape[1]
     
     # Compute the size of test set
@@ -61,11 +47,39 @@ if __name__ == '__main__':
     
     # Predict on the test set
     print "Predicting Test Set"
-    testSet_predVal = rf.predict(numpy.asarray(testSet_df))
+    testSet_predVal = classifier.predict(numpy.asarray(testSet_df))
     
     # Write output file for test set
     print "Writing Test set results"
-    numpy.savetxt("data/test_result.csv",testSet_predVal, fmt="%1d")
+    numpy.savetxt(fileNameOutput,testSet_predVal, fmt="%1d")
+    
+
+if __name__ == '__main__':
+    
+    print "---BEGIN---"
+    
+    # get the Training and CV sets
+    (trainingSet_df, cvSet_df) = getTrainingAndCvSets('data/train500.csv', splitLevel=70)
+    trainingSet_features = trainingSet_df.drop('label',1)
+    trainingSet_label = trainingSet_df['label']
+    cvSet_features = cvSet_df.drop('label',1)
+    cvSet_label = cvSet_df['label']
+    
+    # Train the Random Forest
+    rf = RandomForestClassifier(n_estimators=100, n_jobs=2, verbose=2)
+
+    print "Training Random Forest..."
+    rf.fit(numpy.asarray(trainingSet_features), numpy.asarray(trainingSet_label))
+    print "End of Training"
+    
+    # Predict on the training set
+    score = computeScore(rf, trainingSet_features, trainingSet_label, "Training Set")
+    
+    # Predict on the CV set
+    score = computeScore(rf, cvSet_features, cvSet_label, "CV Set")
+
+    # Run on test set
+    runOnTestSet(rf, 'data/test.csv', 'data/test_result.csv')
     
     print "---END---"
     
