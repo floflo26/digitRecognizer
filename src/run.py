@@ -12,9 +12,11 @@ trainingSet_Ratio = 70 #ratio in % of the training set to use for training
 
 if __name__ == '__main__':
     
+    print "---BEGIN---"
+    
     # Read the CSV files which contains training examples
     print "Reading CSV file..."
-    df = read_csv('data/train.csv')
+    df = read_csv('data/train500.csv')
     print "CSV file size: ",df.shape[0],"x",df.shape[1]
     
     # Compute the size of trainingSet and cvSet
@@ -47,5 +49,26 @@ if __name__ == '__main__':
     cvSet_predVal = rf.predict(numpy.asarray(cvSet_features))
     cvSet_score = metrics.precision_score(cvSet_label, cvSet_predVal)
     print "Score CV Set:",cvSet_score
+    
+    # Read the test set
+    print "Reading Test set..."
+    testSet_df = read_csv('data/test.csv')
+    print "CSV file size: ",testSet_df.shape[0],"x",testSet_df.shape[1]
+    
+    # Compute the size of test set
+    testSet_size = testSet_df.shape[0]
+    print "Test Set size:",testSet_size
+    
+    # Predict on the test set
+    print "Predicting Test Set"
+    testSet_predVal = rf.predict(numpy.asarray(testSet_df))
+    
+    # Write output file for test set
+    print "Writing Test set results"
+    numpy.savetxt("data/test_result.csv",testSet_predVal, fmt="%1d")
+    
+    print "---END---"
+    
+    
     
     
