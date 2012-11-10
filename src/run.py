@@ -19,12 +19,10 @@ if __name__ == '__main__':
     print "trainingSet size:",trainingSet_size
     print "cvSet size:",cvSet_size
     
-    
     #split the dataframe into the training set and the cv set
     rowsIndexes = random.sample(df.index, trainingSet_size)
     trainingSet_df = df.ix[rowsIndexes]
     cvSet_df = df.drop(rowsIndexes)
-    
     print trainingSet_df.shape
     print cvSet_df.shape
     
